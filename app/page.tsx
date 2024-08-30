@@ -16,9 +16,6 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-
-
-
             
             By{" "}
             <Image
