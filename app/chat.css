@@ -1,71 +1,226 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 /* 전체 페이지 스타일 */
 body {
   margin: 0;
   padding: 0;
   font-family: "Arial", sans-serif;
   background-color: #fff;
+  background-image: none;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-/* 하단 입력 섹션 스타일 */
-.bottom-input-section {
-  position: fixed; /* 화면 하단에 고정합니다. */
-  bottom: 35px; /* 화면 하단에서 16px 떨어진 위치에 설정합니다. */
-  left: 50%; /* 화면 중앙에 가로 배치합니다. */
-  transform: translateX(-50%); /* 중앙 정렬을 위해 화면 중앙으로 이동합니다. */
-  width: calc(100% - 32px); /* 화면 전체 너비에서 패딩을 뺀 너비를 차지합니다. */
-  max-width: 700px; /* 최대 너비를 설정합니다. */
-  height: 60px; /* 높이 설정 */
-  padding: 0 12px; /* 좌우 패딩을 설정합니다. (위아래 패딩은 제거) */
-  background-color: #fff; /* 배경색을 흰색으로 설정합니다. */
-  border: 1px solid #000; /* 검정색 테두리 추가 */
-  border-radius: 20px; /* 둥근 모서리 추가 */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+/* 컨테이너 스타일 */
+.chat-container {
+  position: relative;
+  width: calc(100% - 32px);
+  max-width: 700px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  border: 1px solid lightgray;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* 좌측 및 우측 세로 선 */
+.left-line,
+.right-line {
+  width: 2px;
+  height: 100%;
+  background-color: lightgray;
+  position: absolute;
+  top: 0;
+}
+
+.left-line {
+  left: 0;
+}
+
+.right-line {
+  right: 0;
+}
+
+/* 네비게이션 바 스타일 */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #000;
+}
+
+.profile-menu {
+  position: relative;
+}
+
+.profile-icon {
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
+  padding: 10px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 12px; /* 입력 필드와 버튼 사이의 간격을 설정합니다. */
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 드롭다운 메뉴 */
+.dropdown-menu {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 200;
+  width: 200px;
+  padding: 15px;
+}
+
+.dropdown-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-info {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.profile-img {
+  font-size: 60px;
+}
+
+.email {
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.account-type {
+  font-size: 12px;
+  color: #777;
+}
+
+.logout-button {
+  padding: 10px;
+  font-size: 14px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+}
+
+.logout-button:hover {
+  background-color: #0056b3;
+}
+/* 채팅 콘텐츠 스타일 */
+.chat-content {
+  flex: 1;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto; /* 스크롤을 위한 자동 오버플로우 설정 */
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* 말풍선 간 간격을 증가시킴 */
+}
+
+/* 말풍선 스타일 */
+.chat-message {
+  max-width: 80%; /* 최대 너비를 늘림 */
+  padding: 15px 20px; /* 패딩을 증가시킴 */
+  border-radius: 20px; /* 모서리 반경을 늘림 */
+  font-size: 20px; /* 폰트 크기를 증가시킴 */
+  line-height: 1.5; /* 줄 높이를 증가시킴 */
+}
+
+/* 유저 메시지 스타일 */
+.user-message {
+  align-self: flex-start;
+  background-color: #f0f0f0;
+  color: black;
+  border-bottom-left-radius: 0; /* 왼쪽 하단 모서리 반경 제거 */
+}
+
+/* 봇 메시지 스타일 */
+.bot-message {
+  align-self: flex-end;
+  background-color: #007bff;
+  color: white;
+  border-bottom-right-radius: 0; /* 오른쪽 하단 모서리 반경 제거 */
+}
+
+/* 하단 입력 섹션 스타일 */
+.bottom-input-section {
+  position: fixed;
+  bottom: 35px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 700px;
+  height: 70px; /* 높이 증가 */
+  padding: 0 16px; /* 패딩 증가 */
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 16px; /* 입력창과 버튼 사이의 간격을 증가시킴 */
 }
 
 /* 텍스트 입력 스타일 */
 .text-input {
-  flex: 1; /* 입력 필드가 가능한 공간을 차지하도록 설정 */
-  padding: 12px; /* 내부 여백을 설정합니다. */
-  border: none; /* 기본 테두리 제거 */
-  outline: none; /* 포커스 아웃라인 제거 */
-  font-size: 16px; /* 폰트 크기 설정 */
-  border-radius: 50px; /* 둥근 모서리 추가 */
+  flex: 1;
+  padding: 14px; /* 패딩 증가 */
+  border: none;
+  outline: none;
+  font-size: 16px;
+  border-radius: 50px;
 }
 
 /* 버튼 스타일 */
 .submit-button {
-  padding: 12px 24px; /* 내부 여백을 설정합니다. */
-  background-color: #007bff; /* 파란색 배경 */
-  color: #fff; /* 흰색 텍스트 */
-  border: none; /* 기본 테두리 제거 */
-  border-radius: 50px; /* 둥근 모서리 추가 */
-  font-size: 16px; /* 폰트 크기 설정 */
-  cursor: pointer; /* 커서를 포인터로 변경 */
-  transition: background-color 0.3s; /* 배경색 전환 효과 */
+  padding: 14px 28px; /* 패딩 증가 */
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .submit-button:hover {
-  background-color: #0056b3; /* 호버 시 배경색 변경 */
+  background-color: #0056b3;
 }
-
-/* 텍스트 입력 스타일 */
-.text-input {
-    flex: 1; /* 입력 필드가 가능한 공간을 차지하도록 설정 */
-    padding: 12px; /* 내부 여백을 설정합니다. */
-    border: none; /* 기본 테두리 제거 */
-    outline: none; /* 포커스 아웃라인 제거 */
-    font-size: 16px; /* 폰트 크기 설정 */
-    border-radius: 50px; /* 둥근 모서리 추가 */
-    color: black; /* 텍스트 색상을 검정색으로 변경 */
-  }
-  
