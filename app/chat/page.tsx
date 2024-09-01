@@ -1,17 +1,22 @@
-"use client"
+"use client";
 import React, { useState } from "react";
-import './globals.css'; // CSS 파일을 import 합니다.
+import './chat.css'; // CSS 파일을 import 합니다.
 
 const App: React.FC = () => {
   // 드롭다운 메뉴 상태 관리
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // 드롭다운 토글 함수
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
   return (
-    <div className="container">
+    <div className="chat-container">
+      {/* 좌측 및 우측 세로 선 */}
+      <div className="left-line"></div>
+      <div className="right-line"></div>
+
       {/* 네비게이션 바 */}
       <header className="navbar">
         <div className="logo">LifeConnection</div>
@@ -35,14 +40,19 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* 메인 콘텐츠 */}
-      <main className="main-content">
-        <h1 className="main-title">
-          최적의 보험 솔루션 <br />
-          <span className="highlight">라이프커넥션과 빠르고 간편하게</span>
-        </h1>
-        <button className="main-button">보험 추천 받으러 가기</button>
+      {/* 채팅 콘텐츠 영역 */}
+      <main className="chat-content">
+        {/* 채팅 메시지들 */}
+        <div className="chat-message user-message">안녕하세요, 집에 가고 싶으세요?</div>
+        <div className="chat-message bot-message">간절히 원합니다.</div>
+        {/* 더 많은 메시지를 여기에 추가할 수 있습니다 */}
       </main>
+
+      {/* 하단 입력 섹션 */}
+      <div className="bottom-input-section">
+        <input className="text-input" type="text" placeholder="메시지를 입력하세요..." />
+        <button className="submit-button">보내기</button>
+      </div>
     </div>
   );
 };

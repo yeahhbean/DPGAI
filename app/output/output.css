@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Arial", sans-serif;
+  background-color: #fff;
+  background-image: none;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px; /* 최대 너비를 1200px로 증가 */
+  margin: 20px auto; /* margin-top을 20px로 설정하여 상단 여백 추가 */
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  padding: 20px; /* 패딩을 20px로 증가 */
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+.title {
+  text-align: center;
+  font-size: 24px; /* 폰트 크기를 24px로 증가 */
+  font-weight: bold;
+  margin-bottom: 10px; /* 간격 조정 */
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 16px; /* 폰트 크기를 16px로 증가 */
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.insurance-box {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px; /* 패딩을 20px로 증가 */
+  margin-bottom: 20px;
+}
+
+.insurance-title {
+  font-size: 18px; /* 폰트 크기를 18px로 증가 */
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.content-box {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  height: 80px; /* 높이는 동일하게 유지 */
+  margin-bottom: 12px;
+}
+
+.large-box {
+  height: 120px; /* 높이는 동일하게 유지 */
+}
+
+.additional-info {
+  font-size: 16px; /* 폰트 크기를 16px로 증가 */
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.back-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.back-button:hover {
+  background-color: #0056b3;
+}

@@ -2,32 +2,157 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
+/* 전체 페이지 스타일 */
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #fff;
+  background-image: url('./background_main_up.jpg'); /* 배경 이미지 경로 */
+  background-size: cover; /* 이미지가 컨테이너를 덮도록 크기 조정 */
+  background-position: center; /* 이미지가 가운데에 위치하도록 설정 */
+  background-repeat: no-repeat; /* 이미지 반복 방지 */
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* 네비게이션 바 스타일 */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  padding: 40px 20px;
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #000;
+}
+
+/* 프로필 메뉴 스타일 */
+.profile-menu {
+  position: relative;
+}
+
+/* 프로필 아이콘 스타일 */
+.profile-icon {
+  background-color: #f0f0f0; /* 원형 배경 색상 */
+  border: none;
+  cursor: pointer;
+  font-size: 30px; /* 이모지 크기 */
+  padding: 10px; /* 원 안의 이모지 위치 조정 */
+  border-radius: 50%; /* 원형 모양 만들기 */
+  margin-right: 20px; /* 오른쪽 여백 추가 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px; /* 원의 너비 */
+  height: 50px; /* 원의 높이 */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 약간의 그림자 추가 */
+}
+
+/* 드롭다운 메뉴 */
+.dropdown-menu {
+  position: absolute;
+  top: 60px; /* 아이콘 크기에 맞게 조정 */
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 200;
+  width: 200px;
+  padding: 15px;
+}
+
+
+.dropdown-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-info {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.profile-img {
+  font-size: 60px;
+}
+
+.email {
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.account-type {
+  font-size: 12px;
+  color: #777;
+}
+
+.logout-button {
+  padding: 10px;
+  font-size: 14px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+}
+
+.logout-button:hover {
+  background-color: #0056b3;
+}
+
+/* 메인 콘텐츠 스타일 */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 120px;
+}
+
+.main-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.highlight {
+  color: #007bff;
+}
+
+.main-button {
+  padding: 15px 30px;
+  font-size: 16px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+}
+
+.main-button:hover {
+  background-color: #0056b3;
 }
