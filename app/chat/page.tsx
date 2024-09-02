@@ -11,8 +11,6 @@ const App: React.FC = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-<<<<<<< HEAD
-=======
   const sendMessage = async () => {
     if (!inputValue.trim()) return; // 공백 메시지 전송 방지
 
@@ -75,16 +73,14 @@ const App: React.FC = () => {
     setAvailableQuestions([]); // 카드 제거
   };
 
->>>>>>> aa81988 (env파일 수정 완료)
   return (
     <div className="chat-container">
       {/* 좌측 및 우측 세로 선 */}
       <div className="left-line"></div>
       <div className="right-line"></div>
 
-      {/* 네비게이션 바 */}
       <header className="navbar">
-        <div className="logo">LifeConnection</div>
+        <div className="logo">{isMounted ? "라이프 커넥션" : ""}</div>
         <div className="profile-menu">
           <button onClick={toggleDropdown} className="profile-icon">
             {/* 이모티콘 (프로필 이미지) */}
@@ -105,15 +101,27 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* 채팅 콘텐츠 영역 */}
-      <main className="chat-content">
-        {/* 채팅 메시지들 */}
-        <div className="chat-message user-message">안녕하세요, 집에 가고 싶으세요?</div>
-        <div className="chat-message bot-message">간절히 원합니다.</div>
-        {/* 더 많은 메시지를 여기에 추가할 수 있습니다 */}
+      {/* 질문 카드 섹션 추가 */}
+      <div className="card-container">
+        {availableQuestions.map((preset, index) => (
+          <div
+            key={index}
+            className="question-card"
+            onClick={() => handlePresetClick(preset)}
+          >
+            {preset}
+          </div>
+        ))}
+      </div>
+
+      <main className="chat-content" ref={chatContentRef}>
+        {messages.map((message, index) => (
+          <div key={index} className={`chat-message ${message.sender}-message`}>
+            {message.text}
+          </div>
+        ))}
       </main>
 
-      {/* 하단 입력 섹션 */}
       <div className="bottom-input-section">
         <input className="text-input" type="text" placeholder="메시지를 입력하세요..." />
         <button className="submit-button">보내기</button>
