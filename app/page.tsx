@@ -1,7 +1,6 @@
 // app/page.tsx
 "use client";
 import React, { useState } from "react";
-import Link from "next/link"; // Link 컴포넌트를 import 합니다.
 import './globals.css'; // CSS 파일을 import 합니다.
 
 const App: React.FC = () => {
@@ -49,9 +48,7 @@ const App: React.FC = () => {
           최적의 보험 솔루션 <br />
           <span className="highlight">라이프커넥션과 빠르고 간편하게</span>
         </h1>
-        <Link href="/chat"> {/* Link 컴포넌트 사용 */}
-          <button className="main-button">보험 추천 받으러 가기</button>
-        </Link>
+        <button className="main-button">보험 추천 받으러 가기</button>
       </main>
     </div>
   );
