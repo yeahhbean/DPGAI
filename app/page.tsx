@@ -1,4 +1,5 @@
-"use client"
+// app/page.tsx
+"use client";
 import React, { useState } from "react";
 import Link from "next/link"; // Link 컴포넌트를 import 합니다.
 import './globals.css'; // CSS 파일을 import 합니다.
@@ -12,10 +13,16 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container" style={{ 
+      backgroundImage: "url('./background_main_up.jpg')", // 루트 페이지와 같은 경로
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      height: "100vh" // 명시적으로 높이 설정
+    }}>
       {/* 네비게이션 바 */}
       <header className="navbar">
-        <div className="logo">LifeConnection</div>
+        <div className="logo">라이프 커넥션</div>
         <div className="profile-menu">
           <button onClick={toggleDropdown} className="profile-icon">
             {/* 이모티콘 (프로필 이미지) */}

@@ -1,12 +1,33 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import './chat.css'; // CSS 파일을 import 합니다.
 
 const App: React.FC = () => {
-  // 드롭다운 메뉴 상태 관리
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+  const [availableQuestions, setAvailableQuestions] = useState<string[]>([
+    "어떤 보험에 가입하고 싶어요?",
+    "오늘의 날씨는 어때?",
+    "내일의 일정은 뭐야?",
+    "가장 좋아하는 음식은 무엇인가요?",
+  ]);
 
-  // 드롭다운 토글 함수
+  const chatContentRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null); // 입력 필드에 대한 참조 추가
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // 메시지가 추가될 때 자동으로 스크롤
+    if (chatContentRef.current) {
+      chatContentRef.current.scrollTop = chatContentRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
@@ -75,7 +96,6 @@ const App: React.FC = () => {
 
   return (
     <div className="chat-container">
-      {/* 좌측 및 우측 세로 선 */}
       <div className="left-line"></div>
       <div className="right-line"></div>
 
@@ -83,7 +103,6 @@ const App: React.FC = () => {
         <div className="logo">{isMounted ? "라이프 커넥션" : ""}</div>
         <div className="profile-menu">
           <button onClick={toggleDropdown} className="profile-icon">
-            {/* 이모티콘 (프로필 이미지) */}
             <span role="img" aria-label="profile">🧑‍💻</span>
           </button>
           {isDropdownOpen && (
@@ -123,8 +142,18 @@ const App: React.FC = () => {
       </main>
 
       <div className="bottom-input-section">
-        <input className="text-input" type="text" placeholder="메시지를 입력하세요..." />
-        <button className="submit-button">보내기</button>
+        <input
+          ref={inputRef} // 입력 필드에 ref 추가
+          className="text-input"
+          type="text"
+          placeholder="메시지를 입력하세요..."
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button className="submit-button" onClick={handleButtonClick}>
+          보내기
+        </button>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+// app/layout.tsx
+import { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -11,13 +12,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <head>
+        <link 
+          rel="stylesheet" 
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" 
+        />
+      </head>
+      <body className={`${inter.className} font-sans`}>
+        {children}
+      </body>
     </html>
   );
 }
-// dddd
