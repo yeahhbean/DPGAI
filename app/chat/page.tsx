@@ -56,6 +56,22 @@ const extractApiCalls = (text: string): string[] => {
   return apiCalls;
 };
 
+const handleProductSummarySearch = async (productName: string) => {
+  try {
+    const response = await fetch(`/api/ProductSummary?productName=${encodeURIComponent(productName)}`);
+    if (response.ok) {
+      const summary = await response.text();
+      return summary;
+    } else {
+      console.error("상품 요약서를 가져오는 데 실패했습니다.");
+      return null;
+    }
+  } catch (error) {
+    console.error("상품 요약서 검색 중 오류 발생:", error);
+    return null;
+  }
+};
+
 const App: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
@@ -209,6 +225,43 @@ const App: React.FC = () => {
               console.error("API 호출 중 오류 발생:", error);
               setMessages((prevMessages) => [...prevMessages, { text: "상품 목록을 처리하는 중 오류가 발생했습니다.", sender: "bot" }]);
             }
+          }
+        }
+        if (apiCall.startsWith("[상품요약서검색]")) {
+          const productName = apiCall.split(' ')[1].replace(/[\[\]]/g, '');
+          const summary = await handleProductSummarySearch(productName);
+          if (summary) {
+            const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                  { role: "system", content: SYSTEM_PROMPT },
+                  ...chatHistory.map(msg => ({
+                    role: msg.sender === "user" ? "user" : "assistant",
+                    content: msg.text
+                  })),
+                  { role: "user", content: `다음은 요청한 상품 '${productName}'의 요약서입니다. 이를 바탕으로 중요한 보장사항과 주의해야할 점 등 사용자에게 적절한 설명을 제공해주세요:\n\n${summary}` }
+                ],
+              }),
+            });
+        
+            if (aiResponse.ok) {
+              const aiData = await aiResponse.json();
+              if (aiData.choices && aiData.choices.length > 0) {
+                const aiBotMessage = {
+                  text: aiData.choices[0].message.content,
+                  sender: "bot",
+                };
+                setMessages((prevMessages) => [...prevMessages, aiBotMessage]);
+              }
+            }
+          } else {
+            setMessages((prevMessages) => [...prevMessages, { text: "상품 요약서를 가져오는 데 실패했습니다.", sender: "bot" }]);
           }
         }
       }
