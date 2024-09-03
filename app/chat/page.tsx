@@ -62,6 +62,7 @@ const App: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const [chatHistory, setChatHistory] = useState<{ text: string; sender: string }[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   const chatContentRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -86,16 +87,14 @@ const App: React.FC = () => {
     const userMessage = { text: inputValue, sender: "user" };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
   
-    // 대화 기록 업데이트
     setChatHistory((prevHistory) => {
       const newHistory = [...prevHistory, userMessage];
-      return newHistory.slice(-15); // 최근 15개 메시지만 유지
+      return newHistory.slice(-15);
     });
   
-    // 환경 변수에서 API 키를 가져옵니다.
     const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
   
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const fetchOptions = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -111,35 +110,57 @@ const App: React.FC = () => {
           })),
           { role: "user", content: inputValue }
         ],
+        stream: true,
       }),
-    });
+    };
+
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", fetchOptions);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder("utf-8");
+      
+      setIsStreaming(true);
+      let botMessageText = "";
+
+      while (true) {
+        const { done, value } = await reader!.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+        const parsedLines = lines
+          .map((line) => line.replace(/^data: /, "").trim())
+          .filter((line) => line !== "" && line !== "[DONE]")
+          .map((line) => JSON.parse(line));
+
+        for (const parsedLine of parsedLines) {
+          const { choices } = parsedLine;
+          const { delta } = choices[0];
+          const { content } = delta;
+          if (content) {
+            botMessageText += content;
+            setMessages((prevMessages) => {
+              const lastMessage = prevMessages[prevMessages.length - 1];
+              if (lastMessage && lastMessage.sender === "bot") {
+                const updatedMessages = [...prevMessages];
+                updatedMessages[updatedMessages.length - 1] = {
+                  ...lastMessage,
+                  text: botMessageText
+                };
+                return updatedMessages;
+              } else {
+                return [...prevMessages, { text: botMessageText, sender: "bot" }];
+              }
+            });
+          }
+        }
+      }
+
+      setIsStreaming(false);
+
+      const apiCalls = extractApiCalls(botMessageText);
+      console.log("추출된 API 호출:", apiCalls);
   
-    if (!response.ok) {
-      console.error("API 호출 오류:", response.status, response.statusText);
-      return;
-    }
-  
-    const data = await response.json();
-  
-    if (data.choices && data.choices.length > 0) {
-      const botMessage = {
-        text: data.choices[0].message.content,
-        sender: "bot",
-      };
-  
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
-  
-      // 대화 기록 업데이트
-      setChatHistory((prevHistory) => {
-        const newHistory = [...prevHistory, botMessage];
-        return newHistory.slice(-15); // 최근 15개 메시지만 유지
-      });
-  
-      // AI 응답에서 API 호출 명령어 추출
-      const apiCalls = extractApiCalls(botMessage.text);
-      console.log("추출된 API 호출:", apiCalls); 
-  
-      // API 호출 처리
       for (const apiCall of apiCalls) {
         if (apiCall.startsWith("[상품목록검색]")) {
           const args = apiCall.split(' ');
@@ -152,7 +173,6 @@ const App: React.FC = () => {
               if (productListResponse.ok) {
                 const productList = await productListResponse.text();
                 
-                // 상품 목록을 AI에게 전달
                 const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                   method: "POST",
                   headers: {
@@ -192,11 +212,11 @@ const App: React.FC = () => {
           }
         }
       }
-    } else {
-      console.error("API 응답 형식 오류:", data);
+    } catch (error) {
+      console.error("API 호출 중 오류 발생:", error);
+      setMessages((prevMessages) => [...prevMessages, { text: "오류가 발생했습니다.", sender: "bot" }]);
     }
   
-    // 입력값 초기화
     setInputValue("");
   };
   
@@ -262,5 +282,6 @@ const App: React.FC = () => {
     </div>
   );
 };
+
 
 export default App;
