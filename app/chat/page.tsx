@@ -46,19 +46,16 @@ const SYSTEM_PROMPT = `당신은 최고의 운전자 보험 설계사입니다. 
 5. 특정 보장 항목에 대한 선호도 : 특정 질병에 대한 보장 선호 (예: 암, 심혈관 질환 등)`;
 
 const extractApiCalls = (text: string): string[] => {
-  const regex = /\[end\]\s*\[(.*?)\]\s*\[(.*?)\]\s*\[\/end\]/g;
+  const regex = /\[end\]\s*(.*?)\s*\[\/end\]/g;
   const apiCalls: string[] = [];
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    if (match[1] === '상품요약서검색') {
-      apiCalls.push(`[${match[1]}] [${match[2]}]`);
-    }
+    apiCalls.push(match[1].trim());
   }
 
   return apiCalls;
 };
-
 
 const handleProductSummarySearch = async (productName: string) => {
   try {
