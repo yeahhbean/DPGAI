@@ -7,25 +7,25 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Arial", sans-serif;
-  background-color: #fff;
-  background-image: none;
+  background-color: #e0f7fa;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-/* 컨테이너 스타일 */
+/* 채팅 컨테이너 스타일 */
 .chat-container {
   position: relative;
   width: calc(100% - 32px);
   max-width: 700px;
-  height: 100vh;
+  height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 1);
+  backdrop-filter: blur(10px);
   border: 1px solid lightgray;
   border-radius: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -143,75 +143,103 @@ body {
 .logout-button:hover {
   background-color: #0056b3;
 }
+
+/* 질문 카드 스타일 */
+.question-card {
+  background-color: rgba(240, 240, 240, 0.4); /* 투명도 0.4 */
+  border-radius: 10px;
+  width: 150px; /* 카드의 너비를 150px로 설정 */
+  height: 150px; /* 카드의 높이를 150px로 설정 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+  text-align: center; /* 텍스트 가운데 정렬 */
+}
+
+.question-card:hover {
+  transform: scale(1.05);
+}
+
+.card-container {
+  display: flex;
+  justify-content: space-around; /* 카드 사이의 간격을 조정 */
+  width: 100%;
+  padding: 20px 0; /* 카드 사이의 여백 */
+}
+
 /* 채팅 콘텐츠 스타일 */
 .chat-content {
   flex: 1;
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
-  overflow-y: auto; /* 스크롤을 위한 자동 오버플로우 설정 */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 15px; /* 말풍선 간 간격을 증가시킴 */
+  gap: 15px;
+  padding-bottom: 80px; /* 바닥으로부터 패딩 추가 */
 }
 
 /* 말풍선 스타일 */
 .chat-message {
-  max-width: 80%; /* 최대 너비를 늘림 */
-  padding: 15px 20px; /* 패딩을 증가시킴 */
-  border-radius: 20px; /* 모서리 반경을 늘림 */
-  font-size: 20px; /* 폰트 크기를 증가시킴 */
-  line-height: 1.5; /* 줄 높이를 증가시킴 */
+  max-width: 80%;
+  padding: 15px 20px;
+  border-radius: 20px;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+/* 봇 메시지 스타일 (AI) */
+.bot-message {
+  align-self: flex-start;
+  background-color: #007bff;
+  color: white;
+  border-bottom-left-radius: 0;
 }
 
 /* 유저 메시지 스타일 */
 .user-message {
-  align-self: flex-start;
-  background-color: #f0f0f0;
-  color: black;
-  border-bottom-left-radius: 0; /* 왼쪽 하단 모서리 반경 제거 */
-}
-
-/* 봇 메시지 스타일 */
-.bot-message {
   align-self: flex-end;
-  background-color: #007bff;
-  color: white;
-  border-bottom-right-radius: 0; /* 오른쪽 하단 모서리 반경 제거 */
+  background-color: #e0e0e0;
+  color: black;
+  border-bottom-right-radius: 0;
 }
 
 /* 하단 입력 섹션 스타일 */
 .bottom-input-section {
   position: fixed;
-  bottom: 35px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 32px);
+  bottom: 0;
+  left: 0;
+  width: calc(100%);
   max-width: 700px;
-  height: 70px; /* 높이 증가 */
-  padding: 0 16px; /* 패딩 증가 */
+  height: 70px;
+  padding: 0 16px;
   background-color: #fff;
   border: 1px solid #000;
   border-radius: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
-  gap: 16px; /* 입력창과 버튼 사이의 간격을 증가시킴 */
+  gap: 16px;
 }
 
 /* 텍스트 입력 스타일 */
 .text-input {
   flex: 1;
-  padding: 14px; /* 패딩 증가 */
+  padding: 14px;
   border: none;
   outline: none;
   font-size: 16px;
   border-radius: 50px;
+  width: 100%;
 }
 
 /* 버튼 스타일 */
 .submit-button {
-  padding: 14px 28px; /* 패딩 증가 */
+  padding: 14px 28px;
   background-color: #007bff;
   color: #fff;
   border: none;

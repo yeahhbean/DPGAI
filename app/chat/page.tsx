@@ -1,28 +1,245 @@
 "use client";
-import React, { useState } from "react";
-import './chat.css'; // CSS 파일을 import 합니다.
+import React, { useState, useEffect, useRef } from "react";
+import ReactMarkdown from 'react-markdown';
+import './chat.css';
+
+const SYSTEM_PROMPT = `당신은 최고의 운전자 보험 설계사입니다. 질문자는 정보취약계층입니다. 자세하고 쉽게 설명해야 합니다. 사용자의 궁금증을 해결하면서 필수 질문을 자연스럽게 유도하세요. 질문은 한번에 하나만 하세요.** 
+
+선택 질문은 필요하지 않다면 물어보지 마세요. 사용자의 질문에 성실히 답하며, 보험과 전혀 연관이 없는 질문 (예: 수학, 코딩 등등)은 답하지 마세요. 필요한 도구가 있다면 답변의 끝 부분에 [end]태그를 감싸고 사용할 도구를 작성하세요 예: [end] [api호출명] [/end] 두 개 이상의 api가 필요시 공백으로 구분하세요. 
+중요한 주의사항:**
+
+목표: 사용자의 보험 니즈를 파악하고 필요한 정보를 수집한 후, 적절한 API를 호출해 사용자에게 도움이 되는 답변을 제출해야합니다.
+조건: 사용자의 니즈를 파악하기 위한 필수 질문을 모두 해야합니다.
+
+사용가능 API: 상품목록검색, 상품요약서검색** 
+
+상품목록검색 api호출명: [상품목록검색]
+사용방법: [성별] [우선순위] 태그를 매개변수로 받습니다. 사용자가 가격이 중요하다고 하면 가격을 우선순위로 두세요. 예:[가격우선], 반대로 보장 범위가 중요하다고 하면 [보장우선]으로 설정하세요.
+예시: [상품목록검색] [남] [가격우선]
+상품요약서검색 api호출명: [상품요약서검색]
+사용방법: [상품명]을 배개변수로 받습니다. (상품명은 상품목록검색에서 제공된 상품명을 사용하세요.) 무조건 유저가 상품을 선택한 후에만 사용하세요.
+
+검색할 수 있는 상품목록은 다음과 같습니다: 4세대, 간병치매, 기타, 노후실손의료, 반려견묘, 암, 어린이, 운전자, 유병력자실손, 종합, 질병, 화재.
+
+도구를 사용할 떄도 시작은 [end]로 끝은 [/end]로 감싸세요. 예: [end] [상품목록검색] [/end]
+성별은 [남], [여]로 입력하세요. 나이는 숫자로 입력하세요. 우선순위는 [가격우선], [보장우선]으로 입력하세요. 보험종류는 위에 나열된 상품 중 하나로 입력하세요. 항상 end 태그 내에서는
+대괄호를 사용해야합니다.
+
+### 필수 질문 목록:
+
+2. 성별 : 남성 또는 여성 (보험료 차이가 있을 수 있음)
+3. 나이 : 정확한 연령 (보험료 산출에 중요한 요소)
+5. 건강 상태 : 현재 건강 상태는 어떤가요? (예: 건강함, 경미한 질병, 중증 질환 등)
+6. 흡연 여부 : 비흡연 또는 흡연 (흡연자는 보험료가 높아질 수 있음)
+7. 우선순위 : 보험료가 저렴한걸 원하시나요? 아니면 보장 범위가 넓은걸 원하시나요?
+8. 특약 가입 여부 : 추가 보장 옵션의 필요 여부
+9. 보험 가입 기간 : 가입하고자 하는 기간 (예: 1년, 5년, 평생 등)
+
+### 선택적 질문 목록:
+
+4. 직업 : 현재 직업 (위험도가 다를 수 있음)
+1. 가족력 : 가족 내 유전적 질병의 위험성 (예: 고혈압, 당뇨병 등)
+2. 기타 건강 관련 정보 : 최근 건강 검진 결과 등 (예: 정상, 이상 소견 등)
+3. 재정 상황 : 보험료 납입 능력 및 예산 (예: 월 10만 원 이하, 20만 원 이상 등)
+4. 보험 가입 경험 : 이전에 가입한 보험의 종류 및 경험 (예: 생명보험, 건강보험 등)
+5. 특정 보장 항목에 대한 선호도 : 특정 질병에 대한 보장 선호 (예: 암, 심혈관 질환 등)`;
+
+const extractApiCalls = (text: string): string[] => {
+  const regex = /\[end\]\s*(.*?)\s*\[\/end\]/g;
+  const apiCalls: string[] = [];
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    apiCalls.push(match[1].trim());
+  }
+
+  return apiCalls;
+};
 
 const App: React.FC = () => {
-  // 드롭다운 메뉴 상태 관리
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [messages, setMessages] = useState<{ text: string; sender: string }[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+  const [chatHistory, setChatHistory] = useState<{ text: string; sender: string }[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
 
-  // 드롭다운 토글 함수
+  const chatContentRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (chatContentRef.current) {
+      chatContentRef.current.scrollTop = chatContentRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  const sendMessage = async () => {
+    if (!inputValue.trim()) return;
+  
+    const userMessage = { text: inputValue, sender: "user" };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+  
+    setChatHistory((prevHistory) => {
+      const newHistory = [...prevHistory, userMessage];
+      return newHistory.slice(-15);
+    });
+  
+    const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  
+    const fetchOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...chatHistory.map(msg => ({
+            role: msg.sender === "user" ? "user" : "assistant",
+            content: msg.text
+          })),
+          { role: "user", content: inputValue }
+        ],
+        stream: true,
+      }),
+    };
+
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", fetchOptions);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder("utf-8");
+      
+      setIsStreaming(true);
+      let botMessageText = "";
+
+      while (true) {
+        const { done, value } = await reader!.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+        const parsedLines = lines
+          .map((line) => line.replace(/^data: /, "").trim())
+          .filter((line) => line !== "" && line !== "[DONE]")
+          .map((line) => JSON.parse(line));
+
+        for (const parsedLine of parsedLines) {
+          const { choices } = parsedLine;
+          const { delta } = choices[0];
+          const { content } = delta;
+          if (content) {
+            botMessageText += content;
+            setMessages((prevMessages) => {
+              const lastMessage = prevMessages[prevMessages.length - 1];
+              if (lastMessage && lastMessage.sender === "bot") {
+                const updatedMessages = [...prevMessages];
+                updatedMessages[updatedMessages.length - 1] = {
+                  ...lastMessage,
+                  text: botMessageText
+                };
+                return updatedMessages;
+              } else {
+                return [...prevMessages, { text: botMessageText, sender: "bot" }];
+              }
+            });
+          }
+        }
+      }
+
+      setIsStreaming(false);
+
+      const apiCalls = extractApiCalls(botMessageText);
+      console.log("추출된 API 호출:", apiCalls);
+  
+      for (const apiCall of apiCalls) {
+        if (apiCall.startsWith("[상품목록검색]")) {
+          const args = apiCall.split(' ');
+          if (args.length >= 3) {
+            const gender = args[1].replace(/[\[\]]/g, '');
+            const priority = args[2].replace(/[\[\]]/g, '');
+  
+            try {
+              const productListResponse = await fetch(`/api/ProductList?gender=${gender}&priority=${priority}`);
+              if (productListResponse.ok) {
+                const productList = await productListResponse.text();
+                
+                const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`,
+                  },
+                  body: JSON.stringify({
+                    model: "gpt-4o-mini",
+                    messages: [
+                      { role: "system", content: SYSTEM_PROMPT },
+                      ...chatHistory.map(msg => ({
+                        role: msg.sender === "user" ? "user" : "assistant",
+                        content: msg.text
+                      })),
+                      { role: "user", content: "다음은 요청한 상품 목록입니다. 이를 바탕으로 사용자에게 적절한 답변을 제공해주세요. 사용자의 정보와 요구에 따라 예상 보험료를 계산하고, 추천한 이유를 설명하세요. 보험 상품은 총 3개 추천해야 하며, 가능하면 각각 다른회사로 추천하세요." + productList }
+                    ],
+                  }),
+                });
+  
+                if (aiResponse.ok) {
+                  const aiData = await aiResponse.json();
+                  if (aiData.choices && aiData.choices.length > 0) {
+                    const aiBotMessage = {
+                      text: aiData.choices[0].message.content,
+                      sender: "bot",
+                    };
+                    setMessages((prevMessages) => [...prevMessages, aiBotMessage]);
+                  }
+                }
+              } else {
+                setMessages((prevMessages) => [...prevMessages, { text: "상품 목록을 가져오는 데 실패했습니다.", sender: "bot" }]);
+              }
+            } catch (error) {
+              console.error("API 호출 중 오류 발생:", error);
+              setMessages((prevMessages) => [...prevMessages, { text: "상품 목록을 처리하는 중 오류가 발생했습니다.", sender: "bot" }]);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("API 호출 중 오류 발생:", error);
+      setMessages((prevMessages) => [...prevMessages, { text: "오류가 발생했습니다.", sender: "bot" }]);
+    }
+  
+    setInputValue("");
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const handleButtonClick = () => {
+    sendMessage();
+  };
+  
   return (
     <div className="chat-container">
-      {/* 좌측 및 우측 세로 선 */}
       <div className="left-line"></div>
       <div className="right-line"></div>
 
-      {/* 네비게이션 바 */}
       <header className="navbar">
-        <div className="logo">LifeConnection</div>
+        <div className="logo">{isMounted ? "라이프 커넥션" : ""}</div>
         <div className="profile-menu">
           <button onClick={toggleDropdown} className="profile-icon">
-            {/* 이모티콘 (프로필 이미지) */}
             <span role="img" aria-label="profile">🧑‍💻</span>
           </button>
           {isDropdownOpen && (
@@ -40,21 +257,31 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* 채팅 콘텐츠 영역 */}
-      <main className="chat-content">
-        {/* 채팅 메시지들 */}
-        <div className="chat-message user-message">안녕하세요, 집에 가고 싶으세요?</div>
-        <div className="chat-message bot-message">간절히 원합니다.</div>
-        {/* 더 많은 메시지를 여기에 추가할 수 있습니다 */}
+      <main className="chat-content" ref={chatContentRef}>
+        {messages.map((message, index) => (
+          <div key={index} className={`chat-message ${message.sender}-message`}>
+            <ReactMarkdown>{message.text}</ReactMarkdown>
+          </div>
+        ))}
       </main>
 
-      {/* 하단 입력 섹션 */}
       <div className="bottom-input-section">
-        <input className="text-input" type="text" placeholder="메시지를 입력하세요..." />
-        <button className="submit-button">보내기</button>
+        <input
+          ref={inputRef}
+          className="text-input"
+          type="text"
+          placeholder="메시지를 입력하세요..."
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button className="submit-button" onClick={handleButtonClick}>
+          보내기
+        </button>
       </div>
     </div>
   );
 };
+
 
 export default App;

@@ -1,3 +1,7 @@
+/* app/globals.css */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+/* Tailwind CSS를 포함한 기본 스타일 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,14 +10,9 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Arial', sans-serif;
-  background-color: #fff;
-  background-image: url('./background_main_up.jpg'); /* 배경 이미지 경로 */
-  background-size: cover; /* 이미지가 컨테이너를 덮도록 크기 조정 */
-  background-position: center; /* 이미지가 가운데에 위치하도록 설정 */
-  background-repeat: no-repeat; /* 이미지 반복 방지 */
+  font-family: 'Pretendard', sans-serif; /* Pretendard 폰트 적용 */
+  background-color: #fff; /* 기본 배경 색상 */
 }
-
 
 .container {
   display: flex;
@@ -79,7 +78,6 @@ body {
   padding: 15px;
 }
 
-
 .dropdown-content {
   display: flex;
   flex-direction: column;
@@ -132,7 +130,7 @@ body {
 }
 
 .main-title {
-  font-size: 28px;
+  font-size: 38px; /* 10포인트 키운 사이즈 */
   font-weight: bold;
   margin-bottom: 20px;
 }
