@@ -16,8 +16,9 @@ const SYSTEM_PROMPT = `당신은 최고의 운전자 보험 설계사입니다. 
 상품목록검색 api호출명: [상품목록검색]
 사용방법: [성별] [우선순위] 태그를 매개변수로 받습니다. 사용자가 가격이 중요하다고 하면 가격을 우선순위로 두세요. 예:[가격우선], 반대로 보장 범위가 중요하다고 하면 [보장우선]으로 설정하세요.
 예시: [상품목록검색] [남] [가격우선]
-상품요약서검색 api호출명: [상품요약서검색]
-사용방법: [상품명]을 배개변수로 받습니다. (상품명은 상품목록검색에서 제공된 상품명을 사용하세요.) 무조건 유저가 상품을 선택한 후에만 사용하세요.
+상품목록검색은 한번씩만 사용하세요. 상품목록검색을 사용하면 상품요약서검색을 사용할 수 있습니다.
+상품요약서검색 api호출명: [상품요약서검색] [상품명]
+사용방법: [상품명]을 배개변수로 받습니다. (상품명은 상품목록검색에서 제공된 상품명을 사용하세요. 주의사항: (무) 같은거 빼지말고 상품명: 뒤에 써있는 모든 글자를 출력하세요. 예시 [(무) 메리츠 다이렉트 운전자보험2404]) 무조건 유저가 상품을 선택한 후에만 사용하세요.
 
 검색할 수 있는 상품목록은 다음과 같습니다: 4세대, 간병치매, 기타, 노후실손의료, 반려견묘, 암, 어린이, 운전자, 유병력자실손, 종합, 질병, 화재.
 
@@ -45,16 +46,19 @@ const SYSTEM_PROMPT = `당신은 최고의 운전자 보험 설계사입니다. 
 5. 특정 보장 항목에 대한 선호도 : 특정 질병에 대한 보장 선호 (예: 암, 심혈관 질환 등)`;
 
 const extractApiCalls = (text: string): string[] => {
-  const regex = /\[end\]\s*(.*?)\s*\[\/end\]/g;
+  const regex = /\[end\]\s*\[(.*?)\]\s*\[(.*?)\]\s*\[\/end\]/g;
   const apiCalls: string[] = [];
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    apiCalls.push(match[1].trim());
+    if (match[1] === '상품요약서검색') {
+      apiCalls.push(`[${match[1]}] [${match[2]}]`);
+    }
   }
 
   return apiCalls;
 };
+
 
 const handleProductSummarySearch = async (productName: string) => {
   try {
@@ -63,7 +67,7 @@ const handleProductSummarySearch = async (productName: string) => {
       const summary = await response.text();
       return summary;
     } else {
-      console.error("상품 요약서를 가져오는 데 실패했습니다.");
+      console.error(`상품 요약서 가져오기 실패. 상태 코드: ${response.status}`);
       return null;
     }
   } catch (error) {
