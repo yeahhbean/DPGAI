@@ -18,7 +18,7 @@ const SYSTEM_PROMPT = `당신은 최고의 운전자 보험 설계사입니다. 
 예시: [상품목록검색] [남] [가격우선]
 상품목록검색은 한번씩만 사용하세요. 상품목록검색을 사용하면 상품요약서검색을 사용할 수 있습니다.
 상품요약서검색 api호출명: [상품요약서검색] [상품명]
-사용방법: [상품명]을 배개변수로 받습니다. (상품명은 상품목록검색에서 제공된 상품명을 사용하세요. 주의사항: (무) 같은거 빼지말고 상품명: 뒤에 써있는 모든 글자를 출력하세요. 예시 [(무) 메리츠 다이렉트 운전자보험2404]) 무조건 유저가 상품을 선택한 후에만 사용하세요.
+사용방법: [상품명]을 배개변수로 받습니다. 상품명은 상품목록검색에서 제공된 상품명을 사용하세요. 주의사항: 상품명 뒤에 있는 모든 글자와 기호를 출력하세요. 공백도 유지해야 합니다. 예시 (무) 메리츠 다이렉트 운전자보험2404 무조건 유저가 상품을 선택한 후에만 사용하세요.
 
 검색할 수 있는 상품목록은 다음과 같습니다: 4세대, 간병치매, 기타, 노후실손의료, 반려견묘, 암, 어린이, 운전자, 유병력자실손, 종합, 질병, 화재.
 
@@ -46,12 +46,14 @@ const SYSTEM_PROMPT = `당신은 최고의 운전자 보험 설계사입니다. 
 5. 특정 보장 항목에 대한 선호도 : 특정 질병에 대한 보장 선호 (예: 암, 심혈관 질환 등)`;
 
 const extractApiCalls = (text: string): string[] => {
-  const regex = /\[end\]\s*(.*?)\s*\[\/end\]/g;
+  const regex = /\[end\]\s*\[(.*?)\]\s*\[(.*?)\]\s*\[\/end\]/g;
   const apiCalls: string[] = [];
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    apiCalls.push(match[1].trim());
+    const apiName = match[1].trim();
+    const apiParams = match[2].replace(/[\[\]]/g, '').trim(); // 대괄호 제거
+    apiCalls.push(`${apiName} ${apiParams}`);
   }
 
   return apiCalls;
@@ -59,7 +61,8 @@ const extractApiCalls = (text: string): string[] => {
 
 const handleProductSummarySearch = async (productName: string) => {
   try {
-    const response = await fetch(`/api/ProductSummary?productName=${encodeURIComponent(productName)}`);
+    const encodedProductName = encodeURIComponent(productName);
+    const response = await fetch(`/api/ProductSummary?productName=${encodedProductName}`);
     if (response.ok) {
       const summary = await response.text();
       return summary;
@@ -130,7 +133,7 @@ const App: React.FC = () => {
         stream: true,
       }),
     };
-
+  
     try {
       const response = await fetch("https://api.openai.com/v1/chat/completions", fetchOptions);
       const reader = response.body?.getReader();
@@ -138,7 +141,7 @@ const App: React.FC = () => {
       
       setIsStreaming(true);
       let botMessageText = "";
-
+  
       while (true) {
         const { done, value } = await reader!.read();
         if (done) break;
@@ -149,7 +152,7 @@ const App: React.FC = () => {
           .map((line) => line.replace(/^data: /, "").trim())
           .filter((line) => line !== "" && line !== "[DONE]")
           .map((line) => JSON.parse(line));
-
+  
         for (const parsedLine of parsedLines) {
           const { choices } = parsedLine;
           const { delta } = choices[0];
@@ -172,11 +175,11 @@ const App: React.FC = () => {
           }
         }
       }
-
+  
       setIsStreaming(false);
-
+  
       const apiCalls = extractApiCalls(botMessageText);
-      console.log("추출된 API 호출:", apiCalls);
+      console.log("추출된 API 호출:", apiCalls);  
   
       for (const apiCall of apiCalls) {
         if (apiCall.startsWith("[상품목록검색]")) {
@@ -228,41 +231,43 @@ const App: React.FC = () => {
             }
           }
         }
-        if (apiCall.startsWith("[상품요약서검색]")) {
-          const productName = apiCall.split(' ')[1].replace(/[\[\]]/g, '');
-          const summary = await handleProductSummarySearch(productName);
-          if (summary) {
-            const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                  { role: "system", content: SYSTEM_PROMPT },
-                  ...chatHistory.map(msg => ({
-                    role: msg.sender === "user" ? "user" : "assistant",
-                    content: msg.text
-                  })),
-                  { role: "user", content: `다음은 요청한 상품 '${productName}'의 요약서입니다. 이를 바탕으로 중요한 보장사항과 주의해야할 점 등 사용자에게 적절한 설명을 제공해주세요:\n\n${summary}` }
-                ],
-              }),
-            });
-        
-            if (aiResponse.ok) {
-              const aiData = await aiResponse.json();
-              if (aiData.choices && aiData.choices.length > 0) {
-                const aiBotMessage = {
-                  text: aiData.choices[0].message.content,
-                  sender: "bot",
-                };
-                setMessages((prevMessages) => [...prevMessages, aiBotMessage]);
+        if (apiCall.startsWith("상품요약서검색")) {
+          const productName = apiCall.split(' ').slice(1).join(' ').trim();
+          if (productName) {
+            const summary = await handleProductSummarySearch(productName);
+            if (summary) {
+              const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  messages: [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    ...chatHistory.map(msg => ({
+                      role: msg.sender === "user" ? "user" : "assistant",
+                      content: msg.text
+                    })),
+                    { role: "user", content: `다음은 요청한 상품 '${productName}'의 요약서입니다. 이를 바탕으로 중요한 보장사항과 주의해야할 점 등 사용자에게 적절한 설명을 제공해주세요:\n\n${summary}` }
+                  ],
+                }),
+              });
+          
+              if (aiResponse.ok) {
+                const aiData = await aiResponse.json();
+                if (aiData.choices && aiData.choices.length > 0) {
+                  const aiBotMessage = {
+                    text: aiData.choices[0].message.content,
+                    sender: "bot",
+                  };
+                  setMessages((prevMessages) => [...prevMessages, aiBotMessage]);
+                }
               }
+            } else {
+              setMessages((prevMessages) => [...prevMessages, { text: "상품 요약서를 가져오는 데 실패했습니다.", sender: "bot" }]);
             }
-          } else {
-            setMessages((prevMessages) => [...prevMessages, { text: "상품 요약서를 가져오는 데 실패했습니다.", sender: "bot" }]);
           }
         }
       }
@@ -336,6 +341,5 @@ const App: React.FC = () => {
     </div>
   );
 };
-
 
 export default App;
