@@ -219,7 +219,7 @@ const App: React.FC = () => {
                     ],
                   }),
                 });
-
+   
                 if (aiResponse.ok) {
                   const aiData = await aiResponse.json();
                   if (aiData.choices && aiData.choices.length > 0) {
