@@ -202,6 +202,7 @@ const App: React.FC = () => {
               if (productListResponse.ok) {
                 const productList = await productListResponse.text();
                 setProductListInfo(productList);
+                setUserChatHistory(prevHistory => [...prevHistory, { role: "system", content: `상품 목록 정보: ${productList}` }]);
                 
                 const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                   method: "POST",
@@ -246,6 +247,7 @@ const App: React.FC = () => {
             if (summary) {
               setProductListInfo(null);
               setProductSummaryInfo(summary);
+              setUserChatHistory(prevHistory => [...prevHistory, { role: "system", content: `상품 요약서 정보: ${summary}` }]);
 
               const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST",
